@@ -1,246 +1,234 @@
 import express from "express";
 
 const host = "0.0.0.0";
-const port = 3000;
-var lista = [];
+const port = 4000;
 const app = express();
 
+let fornecedores = [];
+let clientes = [];
+let usuarioLogado = false;
 
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (requisicao, resposta)=>{
-   resposta.send(`
-   
-            <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Página Inicial</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-    <style>
-        .navbar-custom {
-            background-color: #343a40;
-        }
+const menu = `
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Menu</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/cadastrarFornecedor">Cadastrar Fornecedor</a></li>
+        <li class="nav-item"><a class="nav-link" href="/cadastrarCliente">Cadastrar Cliente</a></li>
+        <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+`;
 
-        .navbar-custom .navbar-brand,
-        .navbar-custom .nav-link,
-        .navbar-custom .dropdown-toggle {
-            color: #ffffff;
-        }
-
-        .navbar-custom .nav-link:hover,
-        .navbar-custom .dropdown-menu a:hover {
-            background-color: #495057;
-            color: #ffffff;
-        }
-
-        .dropdown-menu {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-        }
-
-        .dropdown-item {
-            color: #212529;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-        }
-    </style>
-</head>
-<body>
-    <!-- Menu com estilização -->
-    <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Menu</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Alternar navegação">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Cadastrar
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/cadastroVendas">Cadastro de Vendas</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
-</body>
-</html>
-
-    `); 
-    resposta.end();
-
-})
-
-app.get("/cadastroVendas", (requissicao, resposta)=> {
-    resposta.send(`
-            <!DOCTYPE html>
-            <html lang="pt-BR">
-            <head>
-                <meta charset="UTF-8">
-                <title>Cadastro de Produto</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-            </head>
-            <body>
-                <div class="container w-50 mt-5">
-                    <form method="POST" action="/cadastroVendas" class="border p-4" novalidate>
-                        <fieldset>
-                            <legend>Cadastro de Produto</legend>
-
-                            <div class="mb-3">
-                                <label for="nomeProduto" class="form-label">Nome do Produto</label>
-                                <input type="text" class="form-control" id="nomeProduto" name="produto" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="valorProduto" class="form-label">Valor</label>
-                                <input type="number" class="form-control" id="valorProduto" step="0.01" name="valor" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="quantidadeProduto" class="form-label">Quantidade</label>
-                                <input type="number" class="form-control" id="quantidadeProduto" min="1" name="quantidade" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="tipoProduto" class="form-label">Tipo</label>
-                                <input type="text" class="form-control" id="tipoProduto" name="tipo" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="descricaoProduto" class="form-label">Descrição</label>
-                                <textarea class="form-control" id="descricaoProduto" rows="3" name="descricao" required></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="categoriaProduto" class="form-label">Categoria</label>
-                                <select class="form-select" id="categoriaProduto" name="categoria" required>
-                                    <option selected disabled value="">Escolher...</option>
-                                    <option>Alimento</option>
-                                    <option>Bebida</option>
-                                    <option>Eletrônico</option>
-                                    <option>Vestuário</option>
-                                    <option>Outro</option>
-                                </select>
-                            </div>
-
-                            <button class="btn btn-primary w-100" type="submit">Enviar</button>
-                            <a class="btn btn-primary w-100 mt-3" href="/">Voltar</a>
-                        </fieldset>
-                    </form>
-                </div>
-
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
-            </body>
-            </html>
-
-   
-            
-            `);
-
-});
-app.post("/cadastroVendas", (requisicao, resposta) => {
-    const { produto, valor, quantidade, tipo, descricao, categoria } = requisicao.body;
-
-    if (
-        !produto.trim() ||
-        !valor.trim() ||
-        !quantidade.trim() ||
-        !tipo.trim() ||
-        !descricao.trim() ||
-        !categoria.trim()
-    ) {
-        
-        return resposta.send(`
-            <!DOCTYPE html>
-            <html lang="pt-BR">
-            <head>
-                <meta charset="UTF-8">
-                <title>Erro no Cadastro</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
-            </head>
-            <body>
-                <div class="container mt-5">
-                    <div class="alert alert-danger" role="alert">
-                        Todos os campos devem ser preenchidos! <a href="/cadastroVendas" class="alert-link">Voltar ao formulário</a>
-                    </div>
-                </div>
-            </body>
-            </html>
-        `);
-    }
-
-    lista.push({ produto, valor, quantidade, tipo, descricao, categoria });
-    resposta.redirect("/lista");
-});
-
-
-app.get("/lista", (requisicao, resposta) => {
-    let html = `
+app.get("/", (req, res) => {
+  res.send(`
     <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <title>Lista de Produtos</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container mt-5">
-            <h2 class="mb-4">Lista de Produtos Cadastrados</h2>
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Produto</th>
-                        <th>Valor</th>
-                        <th>Quantidade</th>
-                        <th>Tipo</th>
-                        <th>Descrição</th>
-                        <th>Categoria</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-    if (lista.length === 0) {
-        html += `
-                    <tr>
-                        <td colspan="6" class="text-center">Nenhum produto cadastrado.</td>
-                    </tr>`;
-    } else {
-        for (let item of lista) {
-            html += `
-                    <tr>
-                        <td>${item.produto}</td>
-                        <td>R$ ${parseFloat(item.valor).toFixed(2)}</td>
-                        <td>${item.quantidade}</td>
-                        <td>${item.tipo}</td>
-                        <td>${item.descricao}</td>
-                        <td>${item.categoria}</td>
-                    </tr>`;
-        }
-    }
-
-    html += `
-                </tbody>
-            </table>
-            <a href="/" class="btn btn-primary">Voltar ao início</a>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
-    </html>`;
-
-    resposta.send(html);
+    <html><head>
+      <meta charset="UTF-8">
+      <title>Home</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5"><h1>Bem-vindo!</h1></div>
+    </body></html>
+  `);
 });
 
+// ---------------- FORNECEDOR ----------------
+app.get("/cadastrarFornecedor", (req, res) => {
+  res.send(`
+    <!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Cadastro de Fornecedor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5">
+      <form method="POST" action="/cadastrarFornecedor" class="border p-4">
+        <fieldset><legend>Cadastro de Fornecedor</legend>
+          <div class="mb-3"><label>CNPJ</label><input type="text" name="cnpj" class="form-control"></div>
+          <div class="mb-3"><label>Razão Social</label><input type="text" name="razao" class="form-control"></div>
+          <div class="mb-3"><label>Nome Fantasia</label><input type="text" name="fantasia" class="form-control"></div>
+          <div class="mb-3"><label>Endereço</label><input type="text" name="endereco" class="form-control"></div>
+          <div class="mb-3"><label>Cidade</label><input type="text" name="cidade" class="form-control"></div>
+          <div class="mb-3"><label>UF</label><input type="text" name="uf" class="form-control"></div>
+          <div class="mb-3"><label>CEP</label><input type="text" name="cep" class="form-control"></div>
+          <div class="mb-3"><label>Email</label><input type="email" name="email" class="form-control"></div>
+          <div class="mb-3"><label>Telefone</label><input type="text" name="telefone" class="form-control"></div>
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </fieldset>
+      </form></div></body></html>
+  `);
+});
 
+app.post("/cadastrarFornecedor", (req, res) => {
+  const campos = ["cnpj", "razao", "fantasia", "endereco", "cidade", "uf", "cep", "email", "telefone"];
+  const dados = {};
+  const erros = [];
+
+  campos.forEach(campo => {
+    dados[campo] = req.body[campo]?.trim();
+    if (!dados[campo]) erros.push(campo);
+  });
+
+  if (erros.length > 0) {
+    return res.send(`
+      <!DOCTYPE html><html><head>
+      <meta charset="UTF-8"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+      </head><body>${menu}
+      <div class="container mt-5">
+        <div class="alert alert-danger">
+          Os seguintes campos são obrigatórios: ${erros.join(", ")}<br>
+          <a href="/cadastrarFornecedor">Voltar</a>
+        </div>
+      </div></body></html>
+    `);
+  }
+
+  fornecedores.push(dados);
+  res.redirect("/listaFornecedores");
+});
+
+app.get("/listaFornecedores", (req, res) => {
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Fornecedores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5"><h2>Fornecedores Cadastrados</h2>
+    <table class="table table-bordered"><thead><tr>
+    <th>CNPJ</th><th>Razão</th><th>Fantasia</th><th>Endereço</th>
+    <th>Cidade</th><th>UF</th><th>CEP</th><th>Email</th><th>Telefone</th>
+    </tr></thead><tbody>`;
+
+  if (fornecedores.length === 0) {
+    html += `<tr><td colspan="9" class="text-center">Nenhum fornecedor cadastrado.</td></tr>`;
+  } else {
+    fornecedores.forEach(f => {
+      html += `<tr><td>${f.cnpj}</td><td>${f.razao}</td><td>${f.fantasia}</td>
+      <td>${f.endereco}</td><td>${f.cidade}</td><td>${f.uf}</td>
+      <td>${f.cep}</td><td>${f.email}</td><td>${f.telefone}</td></tr>`;
+    });
+  }
+  html += `</tbody></table></div></body></html>`;
+  res.send(html);
+});
+
+// ---------------- CLIENTE ----------------
+app.get("/cadastrarCliente", (req, res) => {
+  res.send(`
+    <!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Cadastro de Cliente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5">
+      <form method="POST" action="/cadastrarCliente" class="border p-4">
+        <fieldset><legend>Cadastro de Cliente</legend>
+          <div class="mb-3"><label>Nome</label><input type="text" name="nome" class="form-control"></div>
+          <div class="mb-3"><label>Email</label><input type="email" name="email" class="form-control"></div>
+          <div class="mb-3"><label>Telefone</label><input type="text" name="telefone" class="form-control"></div>
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
+        </fieldset>
+      </form></div></body></html>
+  `);
+});
+
+app.post("/cadastrarCliente", (req, res) => {
+  const { nome, email, telefone } = req.body;
+  const erros = [];
+  if (!nome) erros.push("nome");
+  if (!email) erros.push("email");
+  if (!telefone) erros.push("telefone");
+
+  if (erros.length > 0) {
+    return res.send(`
+      <!DOCTYPE html><html><head><meta charset="UTF-8">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+      </head><body>${menu}
+      <div class="container mt-5">
+        <div class="alert alert-danger">
+          Os seguintes campos são obrigatórios: ${erros.join(", ")}<br>
+          <a href="/cadastrarCliente">Voltar</a>
+        </div>
+      </div></body></html>
+    `);
+  }
+
+  clientes.push({ nome, email, telefone });
+  res.redirect("/listaClientes");
+});
+
+app.get("/listaClientes", (req, res) => {
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Clientes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5"><h2>Clientes Cadastrados</h2>
+    <table class="table table-bordered"><thead><tr>
+    <th>Nome</th><th>Email</th><th>Telefone</th></tr></thead><tbody>`;
+
+  if (clientes.length === 0) {
+    html += `<tr><td colspan="3" class="text-center">Nenhum cliente cadastrado.</td></tr>`;
+  } else {
+    clientes.forEach(c => {
+      html += `<tr><td>${c.nome}</td><td>${c.email}</td><td>${c.telefone}</td></tr>`;
+    });
+  }
+
+  html += `</tbody></table></div></body></html>`;
+  res.send(html);
+});
+
+// ---------------- LOGIN / LOGOUT ----------------
+app.get("/login", (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5">
+      <form method="POST" action="/login" class="w-50 mx-auto">
+        <fieldset><legend>Login</legend>
+          <div class="mb-3"><label>Usuário</label><input type="text" name="usuario" class="form-control"></div>
+          <div class="mb-3"><label>Senha</label><input type="password" name="senha" class="form-control"></div>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </fieldset>
+      </form></div></body></html>
+  `);
+});
+
+app.post("/login", (req, res) => {
+  const { usuario, senha } = req.body;
+  usuarioLogado = (usuario === "admin" && senha === "1234");
+  const mensagem = usuarioLogado ? "login efetuado com sucesso!" : "Login está incorreto!";
+
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5">
+      <h1>${mensagem}</h1>
+    </div></body></html>
+  `);
+});
+
+app.get("/logout", (req, res) => {
+  usuarioLogado = false;
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Logout</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head><body>${menu}
+    <div class="container mt-5">
+      <h1>logout efetuado com sucesso!</h1>
+    </div></body></html>
+  `);
+});
 
 app.listen(port, host, () => {
-    console.log(`Servido em execucao em http://${host}:${port}/`);
+  console.log(`Servidor executando em http://${host}:${port}`);
 });
